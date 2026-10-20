@@ -1,1 +1,3 @@
-
+locals {
+  env = "workload-dev"
+}
