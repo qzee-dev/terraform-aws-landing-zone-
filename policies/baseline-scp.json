@@ -1,1 +1,69 @@
-
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RestrictRootUsage",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreateLoginProfile",
+        "iam:CreateAccessKey",
+        "iam:UpdateAccountPasswordPolicy",
+        "iam:DeleteAccountAlias"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "aws:PrincipalArn": "arn:aws:iam::*:root"
+        }
+      }
+    },
+    {
+      "Sid": "RequireMfaForAdmin",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreateUser",
+        "iam:CreateAccessKey",
+        "iam:PutUserPolicy",
+        "iam:AttachUserPolicy",
+        "iam:UpdateUser"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RestrictRegions",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": [
+            "us-east-1",
+            "us-east-2",
+            "us-west-2"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ProtectAuditLogs",
+      "Effect": "Deny",
+      "Action": [
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:UpdateTrail",
+        "cloudtrail:StopLogging",
+        "config:DeleteDeliveryChannel",
+        "config:DeleteConfigRule",
+        "config:DeleteConfigurationRecorder",
+        "config:StopConfigurationRecorder",
+        "s3:DeleteBucket",
+        "s3:DeleteObject"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
