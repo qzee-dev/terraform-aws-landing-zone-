@@ -1,1 +1,44 @@
-
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LimitInstanceSizes",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "ec2:InstanceType": [
+            "m6i.32xlarge",
+            "m6a.32xlarge",
+            "r6i.32xlarge"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnencryptedStorage",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:RunInstances",
+        "ec2:CreateVolume"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPublicNetworkPaths",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateInternetGateway"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
