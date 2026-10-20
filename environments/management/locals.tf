@@ -1,1 +1,4 @@
 
+locals {
+  env = "management"
+}
