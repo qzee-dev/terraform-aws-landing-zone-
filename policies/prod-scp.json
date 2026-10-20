@@ -1,1 +1,42 @@
-
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RequireCMKForStorage",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:CreateVolume",
+        "s3:PutBucketEncryption",
+        "ebs:CreateVolume"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "kms:GrantId": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPublicS3",
+      "Effect": "Deny",
+      "Action": [
+        "s3:CreateBucket"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "s3:PublicAccessBlock": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyDetachFlowLogs",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:DeleteFlowLog",
+        "ec2:DeleteVpcEndpoints"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
