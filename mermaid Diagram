@@ -1,0 +1,124 @@
+flowchart TB
+  Operator["Operator"]
+  BootstrapScript["bootstrap-state.sh<br/>review plan and approve"]
+  EnvScript["deploy-environment.sh<br/>one root, review plan, approve"]
+  Operator --> BootstrapScript
+  Operator --> EnvScript
+
+  subgraph Foundation["Bootstrap account: AWS management account"]
+    Bootstrap["bootstrap Terraform root"]
+    Org["AWS Organization"]
+    OUs["Security, Infrastructure,<br/>Prod, Nonprod, Sandbox OUs"]
+    Accounts["Security and log archive<br/>Network and shared services<br/>Prod, stage, dev, sandbox accounts"]
+    RAMOrg["AWS RAM organization sharing"]
+    State["Encrypted S3 state bucket<br/>KMS key and DynamoDB lock table"]
+    Bootstrap --> Org --> OUs --> Accounts
+    Bootstrap --> RAMOrg
+    Bootstrap --> State
+  end
+
+  BootstrapScript --> Bootstrap
+
+  subgraph Control["Management and security accounts"]
+    Management["management root"]
+    IDC["IAM Identity Center<br/>permission sets and assignments"]
+    Security["security root"]
+    SecServices["GuardDuty, Security Hub,<br/>AWS Config, Config bucket and KMS"]
+    Management --> IDC
+    Security --> SecServices
+  end
+
+  subgraph Hub["Network account"]
+    NetworkRoot["network root"]
+    Inspection["Inspection VPC<br/>private subnets, flow logs"]
+    TGW["Transit Gateway<br/>default route table"]
+    RAMShare["AWS RAM share<br/>approved spoke account IDs"]
+    NetworkRoot --> Inspection
+    Inspection -->|"hub attachment"| TGW
+    NetworkRoot --> RAMShare
+    TGW --> RAMShare
+  end
+
+  subgraph Shared["Shared-services account"]
+    SharedRoot["shared-services root"]
+    SharedVPC["Shared-services VPC<br/>private subnets"]
+    AD["AWS Managed Microsoft AD"]
+    PHZ["Private Route 53 zone<br/>resolver endpoints"]
+    SharedSpoke["TGW attachment<br/>and configured routes"]
+    SharedRoot --> SharedVPC
+    SharedVPC --> AD
+    SharedVPC --> PHZ
+    SharedVPC --> SharedSpoke
+  end
+
+  subgraph Workloads["Workload accounts"]
+    SandboxRoot["sandbox root"]
+    DevRoot["workload-dev root"]
+    StageRoot["workload-stage root"]
+    ProdRoot["workload-prod root"]
+    SandboxVPC["Sandbox VPC"]
+    DevVPC["Dev VPC"]
+    StageVPC["Stage VPC"]
+    ProdVPC["Prod VPC and RDS"]
+    SandboxRoot --> SandboxVPC
+    DevRoot --> DevVPC
+    StageRoot --> StageVPC
+    ProdRoot --> ProdVPC
+  end
+
+  SandboxVPC --> SandboxSpoke["TGW attachment and routes"]
+  DevVPC --> DevSpoke["TGW attachment and routes"]
+  StageVPC --> StageSpoke["TGW attachment and routes"]
+  ProdVPC --> ProdSpoke["TGW attachment and routes"]
+
+  RAMOrg -. "organization sharing enabled" .-> RAMShare
+  RAMShare -. "shared with approved accounts" .-> SharedSpoke
+  RAMShare -. "shared with approved accounts" .-> SandboxSpoke
+  RAMShare -. "shared with approved accounts" .-> DevSpoke
+  RAMShare -. "shared with approved accounts" .-> StageSpoke
+  RAMShare -. "shared with approved accounts" .-> ProdSpoke
+
+  SharedSpoke --> TGW
+  SandboxSpoke --> TGW
+  DevSpoke --> TGW
+  StageSpoke --> TGW
+  ProdSpoke --> TGW
+
+  TGW -. "TGW ID copied into local spoke tfvars" .-> SharedSpoke
+  TGW -. "TGW ID copied into local spoke tfvars" .-> DevSpoke
+
+  State -. "separate state key per root" .-> EnvScript
+  EnvScript --> Management
+  EnvScript --> Security
+  EnvScript --> NetworkRoot
+  EnvScript --> SharedRoot
+  EnvScript --> SandboxRoot
+  EnvScript --> DevRoot
+  EnvScript --> StageRoot
+  EnvScript --> ProdRoot
+
+  Future["Production gates not yet implemented:<br/>organization CloudTrail and central log archive<br/>SCP creation and OU attachment<br/>inspection-firewall routing and segmentation<br/>cross-account private-DNS association"]
+  Future -. "implement and test before production" .-> Workloads
+
+
+  =============================================
+  second diagram
+  ==============================================
+  flowchart TD
+  P["1. Confirm new Organization,<br/>accounts, CIDRs, regions"]
+  B["2. Fill bootstrap/terraform.tfvars"]
+  BOOT["3. Run bootstrap-state.sh<br/>review plan; type APPLY BOOTSTRAP"]
+  BACKEND["4. Copy actual bucket/table values<br/>into each backend.hcl"]
+  ACCESS["5. Create account execution roles;<br/>enable Identity Center and groups"]
+  CONFIG["6. Fill per-environment terraform.tfvars<br/>with account IDs, role ARNs, inputs"]
+  MGMT["7. Deploy management"]
+  SEC["8. Deploy security"]
+  NET["9. Deploy network hub"]
+  TGWID["10. Copy network TGW output<br/>into each spoke's tfvars"]
+  SHARED["11. Deploy shared services"]
+  NONPROD["12. Deploy sandbox, dev, then stage"]
+  GATES["13. Implement and test CloudTrail,<br/>SCPs, firewall routing, private DNS"]
+  PROD["14. Deploy production only<br/>after gates pass"]
+
+  P --> B --> BOOT --> BACKEND --> ACCESS --> CONFIG
+  CONFIG --> MGMT --> SEC --> NET --> TGWID --> SHARED --> NONPROD --> GATES --> PROD
