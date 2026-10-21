@@ -98,7 +98,7 @@ resource "random_string" "suffix" {
 }
 
 resource "aws_kms_key" "config" {
-  description         = "KMS key for Config"
-  enable_key_rotation = true
+  description             = "KMS key for Config"
+  enable_key_rotation     = true
   deletion_window_in_days = 30
 }
