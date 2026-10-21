@@ -22,8 +22,17 @@ state_bucket_name = "enterprise-landing-zone-state"
 lock_table_name = "enterprise-landing-zone-locks"
 
 project_name = "medical-platform"
-
 environment = "prod"
 
-db_password = "ChangeMe123!"
-ad_password = "ChangeMe123!"
+db_password = "REPLACE_WITH_STRONG_PASSWORD"
+ad_password = "REPLACE_WITH_STRONG_PASSWORD"
+
+onprem_cidrs = [
+  "10.0.0.0/8"
+]
+
+management_account_id = "111111111111"
+security_account_id = "222222222222"
+network_account_id = "333333333333"
+shared_system_account_id = "444444444444"
+production_account_id = "555555555555"
