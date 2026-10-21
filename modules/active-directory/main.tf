@@ -11,6 +11,9 @@ resource "aws_directory_service_directory" "this" {
   }
 
   tags = {
-    Name = "shared-services-ad"
+    Name        = "shared-services-ad"
+    Environment = "SharedServices"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
