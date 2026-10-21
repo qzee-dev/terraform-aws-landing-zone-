@@ -11,6 +11,6 @@ echo "==> Validate"
 terraform validate
 
 echo "==> Security checks"
-echo "Checking SCPs, network routes, public DB access, IAM permissions, etc."
+echo "Reviewing SCPs, IAM trust policies, VPC route tables, flow logs, public exposure, KMS and tagging"
 
 echo "==> Complete"
