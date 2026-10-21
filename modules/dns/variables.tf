@@ -1,3 +1,8 @@
+variable "private_zone_name" {
+  description = "Private Route 53 zone name."
+  type        = string
+}
+
 variable "vpc_id" {
   type = string
 }

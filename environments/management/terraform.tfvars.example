@@ -1,0 +1,7 @@
+expected_account_id = "123456789012"
+terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"
+
+security_admin_group_id = "replace-with-identity-center-security-group-id"
+network_admin_group_id  = "replace-with-identity-center-network-group-id"
+security_account_id     = "123456789012"
+network_account_id      = "123456789012"

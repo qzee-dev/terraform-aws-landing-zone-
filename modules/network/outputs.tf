@@ -1,19 +1,15 @@
-output "inspection_vpc_id" {
-  value = aws_vpc.inspection.id
+output "vpc_ids" {
+  value = { for name, vpc in aws_vpc.this : name => vpc.id }
 }
 
-output "shared_services_vpc_id" {
-  value = aws_vpc.shared_services.id
+output "subnet_ids" {
+  value = {
+    for name in keys(var.vpcs) : name => [
+      for index in range(2) : aws_subnet.private["${name}-${index}"].id
+    ]
+  }
 }
 
-output "prod_vpc_id" {
-  value = aws_vpc.prod.id
-}
-
-output "stage_vpc_id" {
-  value = aws_vpc.stage.id
-}
-
-output "dev_vpc_id" {
-  value = aws_vpc.dev.id
+output "route_table_ids" {
+  value = { for name, route_table in aws_route_table.private : name => route_table.id }
 }

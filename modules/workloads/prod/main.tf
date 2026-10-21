@@ -17,9 +17,9 @@ resource "aws_vpc" "prod" {
 
 resource "aws_subnet" "app" {
   count                   = 2
-  vpc_id                 = aws_vpc.prod.id
-  cidr_block             = cidrsubnet(aws_vpc.prod.cidr_block, 8, count.index + 10)
-  availability_zone      = data.aws_availability_zones.available.names[count.index]
+  vpc_id                  = aws_vpc.prod.id
+  cidr_block              = cidrsubnet(aws_vpc.prod.cidr_block, 8, count.index + 10)
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
 
   tags = {
@@ -29,9 +29,9 @@ resource "aws_subnet" "app" {
 
 resource "aws_subnet" "db" {
   count                   = 2
-  vpc_id                 = aws_vpc.prod.id
-  cidr_block             = cidrsubnet(aws_vpc.prod.cidr_block, 8, count.index + 20)
-  availability_zone      = data.aws_availability_zones.available.names[count.index]
+  vpc_id                  = aws_vpc.prod.id
+  cidr_block              = cidrsubnet(aws_vpc.prod.cidr_block, 8, count.index + 20)
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
 
   tags = {

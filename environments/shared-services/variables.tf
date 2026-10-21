@@ -3,41 +3,38 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "environment" {
-  type    = string
-  default = "shared-services"
+variable "expected_account_id" {
+  description = "AWS account ID expected to run this environment."
+  type        = string
 }
 
-variable "project_name" {
-  type    = string
-  default = "medical-platform"
+variable "terraform_role_arn" {
+  description = "Role assumed to manage this AWS account."
+  type        = string
 }
 
-variable "shared_services_subnet_ids" {
-  type = list(string)
-  default = [
-    "subnet-00000000000000010",
-    "subnet-00000000000000011"
-  ]
+variable "transit_gateway_id" {
+  description = "Transit Gateway ID output by the network environment."
+  type        = string
+}
+
+variable "transit_route_cidrs" {
+  description = "Approved internal or on-premises CIDRs routed to the Transit Gateway."
+  type        = set(string)
+}
+
+variable "shared_services_vpc_cidr" {
+  description = "CIDR block for the shared-services VPC."
+  type        = string
+  default     = "10.40.0.0/16"
 }
 
 variable "ad_password" {
   type      = string
   sensitive = true
-  default   = "REPLACE_WITH_STRONG_PASSWORD"
 }
 
-variable "dns_security_group_id" {
-  type    = string
-  default = "sg-00000000000000000"
-}
-
-variable "dns_inbound_subnet_ids" {
-  type    = list(string)
-  default = ["subnet-00000000000000012", "subnet-00000000000000014"]
-}
-
-variable "dns_outbound_subnet_ids" {
-  type    = list(string)
-  default = ["subnet-00000000000000013", "subnet-00000000000000015"]
+variable "dns_zone_name" {
+  description = "Private DNS zone for the company."
+  type        = string
 }

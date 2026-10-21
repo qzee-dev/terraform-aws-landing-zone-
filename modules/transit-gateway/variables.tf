@@ -1,45 +1,17 @@
-variable "prod_vpc_id" {
-  type = string
-}
-
-variable "stage_vpc_id" {
-  type = string
-}
-
-variable "dev_vpc_id" {
-  type = string
-}
-
 variable "inspection_vpc_id" {
   type = string
-}
-
-variable "shared_services_vpc_id" {
-  type = string
-}
-
-variable "prod_subnet_ids" {
-  type = list(string)
-}
-
-variable "stage_subnet_ids" {
-  type = list(string)
-}
-
-variable "dev_subnet_ids" {
-  type = list(string)
 }
 
 variable "inspection_subnet_ids" {
   type = list(string)
 }
 
-variable "shared_services_subnet_ids" {
-  type = list(string)
-}
+variable "spoke_account_ids" {
+  description = "AWS account IDs authorized to attach VPCs to this Transit Gateway."
+  type        = set(string)
 
-variable "onprem_cidrs" {
-  description = "On-premises CIDR ranges reachable via TGW"
-  type        = list(string)
-  default     = ["10.0.0.0/8"]
+  validation {
+    condition     = length(var.spoke_account_ids) > 0
+    error_message = "At least one spoke account ID must be authorized."
+  }
 }

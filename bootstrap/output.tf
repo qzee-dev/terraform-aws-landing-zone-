@@ -26,6 +26,14 @@ output "network_account_id" {
   value = aws_organizations_account.network.id
 }
 
+output "security_tooling_account_id" {
+  value = aws_organizations_account.security_tooling.id
+}
+
+output "log_archive_account_id" {
+  value = aws_organizations_account.log_archive.id
+}
+
 output "shared_system_account_id" {
   value = aws_organizations_account.shared_system.id
 }
@@ -52,4 +60,8 @@ output "state_bucket_name" {
 
 output "lock_table_name" {
   value = aws_dynamodb_table.locks.name
+}
+
+output "aws_region" {
+  value = var.aws_region
 }

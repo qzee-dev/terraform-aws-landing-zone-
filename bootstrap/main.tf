@@ -1,4 +1,6 @@
 terraform {
+  backend "s3" {}
+
   required_version = ">= 1.9.0"
 
   required_providers {
@@ -10,7 +12,12 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region              = var.aws_region
+  allowed_account_ids = [var.expected_management_account_id]
+}
+
+resource "aws_ram_sharing_with_organization" "this" {
+  depends_on = [aws_organizations_organization.this]
 }
 
 resource "aws_organizations_organization" "this" {
@@ -131,6 +138,10 @@ resource "aws_s3_bucket" "state" {
   bucket        = var.state_bucket_name
   force_destroy = false
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "tf-state"
     Environment = "Core"
@@ -163,6 +174,10 @@ resource "aws_kms_key" "state" {
   enable_key_rotation     = true
   deletion_window_in_days = 30
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -187,6 +202,10 @@ resource "aws_dynamodb_table" "locks" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = {

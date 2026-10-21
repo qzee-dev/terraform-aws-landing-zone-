@@ -3,11 +3,19 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region              = var.aws_region
+  allowed_account_ids = [var.expected_account_id]
+
+  assume_role {
+    role_arn = var.terraform_role_arn
+  }
 }
 
-module "organizations" {
-  source = "../../modules/organizations"
+module "iam_identity_center" {
+  source = "../../modules/iam-identity-center"
 
-  organization_name = var.organization_name
+  security_admin_group_id = var.security_admin_group_id
+  network_admin_group_id  = var.network_admin_group_id
+  security_account_id     = var.security_account_id
+  network_account_id      = var.network_account_id
 }

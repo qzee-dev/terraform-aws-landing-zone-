@@ -4,10 +4,9 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "organization_name" {
-  description = "AWS Organization name."
+variable "expected_management_account_id" {
+  description = "AWS account ID expected to run the bootstrap stack."
   type        = string
-  default     = "enterprise-org"
 }
 
 variable "ou_security_name" {
@@ -35,54 +34,40 @@ variable "ou_sandbox_name" {
   default = "Sandbox-OU"
 }
 
-variable "management_account_email" {
-  type    = string
-  default = "management@example.com"
-}
-
 variable "log_archive_account_email" {
-  type    = string
-  default = "log-archive@example.com"
+  type = string
 }
 
 variable "security_tooling_account_email" {
-  type    = string
-  default = "security-tooling@example.com"
+  type = string
 }
 
 variable "network_account_email" {
-  type    = string
-  default = "network@example.com"
+  type = string
 }
 
 variable "production_account_email" {
-  type    = string
-  default = "prod@example.com"
+  type = string
 }
 
 variable "staging_account_email" {
-  type    = string
-  default = "staging@example.com"
+  type = string
 }
 
 variable "development_account_email" {
-  type    = string
-  default = "dev@example.com"
+  type = string
 }
 
 variable "shared_system_account_email" {
-  type    = string
-  default = "shared-system@example.com"
+  type = string
 }
 
 variable "sandbox_account_email" {
-  type    = string
-  default = "sandbox@example.com"
+  type = string
 }
 
 variable "state_bucket_name" {
-  type    = string
-  default = "enterprise-landing-zone-state"
+  type = string
 }
 
 variable "lock_table_name" {

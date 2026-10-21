@@ -1,0 +1,2 @@
+expected_account_id = "123456789012"
+terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"

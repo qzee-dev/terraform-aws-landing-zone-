@@ -1,0 +1,12 @@
+expected_management_account_id = "123456789012"
+
+log_archive_account_email      = "replace-with-unique-log-archive-email@example.com"
+security_tooling_account_email = "replace-with-unique-security-email@example.com"
+network_account_email          = "replace-with-unique-network-email@example.com"
+shared_system_account_email    = "replace-with-unique-shared-services-email@example.com"
+production_account_email       = "replace-with-unique-production-email@example.com"
+staging_account_email          = "replace-with-unique-staging-email@example.com"
+development_account_email      = "replace-with-unique-development-email@example.com"
+sandbox_account_email          = "replace-with-unique-sandbox-email@example.com"
+
+state_bucket_name = "replace-with-globally-unique-state-bucket-name"
