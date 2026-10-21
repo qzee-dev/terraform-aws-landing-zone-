@@ -128,7 +128,7 @@ resource "aws_organizations_account" "sandbox" {
 }
 
 resource "aws_s3_bucket" "state" {
-  bucket = var.state_bucket_name
+  bucket        = var.state_bucket_name
   force_destroy = false
 
   tags = {
