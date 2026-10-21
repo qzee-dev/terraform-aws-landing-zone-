@@ -8,7 +8,10 @@ resource "aws_vpc" "prod" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "prod-vpc"
+    Name        = "prod-vpc"
+    Environment = "Prod"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
 
