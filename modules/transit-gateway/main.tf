@@ -10,10 +10,6 @@ resource "aws_ec2_transit_gateway" "this" {
   }
 }
 
-resource "aws_ec2_transit_gateway_route_table" "default" {
-  transit_gateway_id = aws_ec2_transit_gateway.this.id
-}
-
 resource "aws_ec2_transit_gateway_vpc_attachment" "prod" {
   subnet_ids = var.prod_subnet_ids
   transit_gateway_id = aws_ec2_transit_gateway.this.id

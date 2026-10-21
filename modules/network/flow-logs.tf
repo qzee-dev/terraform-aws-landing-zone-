@@ -2,7 +2,7 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_flow_log" "inspection" {
   log_destination_type = "cloud-watch-logs"
-  log_group_name       = aws_cloudwatch_log_group.vpc_flow_logs.name
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.inspection.id
@@ -17,7 +17,7 @@ resource "aws_flow_log" "inspection" {
 
 resource "aws_flow_log" "shared_services" {
   log_destination_type = "cloud-watch-logs"
-  log_group_name       = aws_cloudwatch_log_group.vpc_flow_logs.name
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.shared_services.id
@@ -32,7 +32,7 @@ resource "aws_flow_log" "shared_services" {
 
 resource "aws_flow_log" "prod" {
   log_destination_type = "cloud-watch-logs"
-  log_group_name       = aws_cloudwatch_log_group.vpc_flow_logs.name
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.prod.id
@@ -47,7 +47,7 @@ resource "aws_flow_log" "prod" {
 
 resource "aws_flow_log" "stage" {
   log_destination_type = "cloud-watch-logs"
-  log_group_name       = aws_cloudwatch_log_group.vpc_flow_logs.name
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.stage.id
@@ -62,7 +62,7 @@ resource "aws_flow_log" "stage" {
 
 resource "aws_flow_log" "dev" {
   log_destination_type = "cloud-watch-logs"
-  log_group_name       = aws_cloudwatch_log_group.vpc_flow_logs.name
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.dev.id

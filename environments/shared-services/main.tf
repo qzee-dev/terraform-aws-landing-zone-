@@ -9,7 +9,7 @@ provider "aws" {
 module "shared_services" {
   source = "../../modules/network"
 
-  environment = var.environment
+  environment  = var.environment
   project_name = var.project_name
 }
 
@@ -25,8 +25,8 @@ module "active_directory" {
 module "dns" {
   source = "../../modules/dns"
 
-  vpc_id             = module.shared_services.shared_services_vpc_id
-  security_group_id  = var.dns_security_group_id
-  inbound_subnet_id  = var.dns_inbound_subnet_id
-  outbound_subnet_id = var.dns_outbound_subnet_id
+  vpc_id              = module.shared_services.shared_services_vpc_id
+  security_group_id   = var.dns_security_group_id
+  inbound_subnet_ids  = var.dns_inbound_subnet_ids
+  outbound_subnet_ids = var.dns_outbound_subnet_ids
 }

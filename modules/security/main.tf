@@ -70,10 +70,6 @@ resource "aws_s3_bucket" "config_bucket" {
   bucket        = "config-log-bucket-${random_string.suffix.result}"
   force_destroy = false
 
-  versioning {
-    enabled = true
-  }
-
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -88,6 +84,14 @@ resource "aws_s3_bucket" "config_bucket" {
     Environment = "Core"
     Compliance  = "HIPAA"
     Automation  = "Terraform"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "config_bucket" {
+  bucket = aws_s3_bucket.config_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 

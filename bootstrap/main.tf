@@ -172,7 +172,7 @@ resource "aws_kms_key" "state" {
         Principal = {
           AWS = "arn:aws:iam::${aws_organizations_organization.this.master_account_id}:root"
         }
-        Action = ["kms:*"]
+        Action   = ["kms:*"]
         Resource = "*"
       }
     ]

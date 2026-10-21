@@ -1,5 +1,13 @@
-bucket         = "enterprise-landing-zone-state"
-key            = "workload-dev/prod.tfstate"
-region         = "us-east-1"
-encrypt        = true
-dynamodb_table = "enterprise-landing-zone-locks"
+terraform {
+  backend "s3" {}
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+module "dev" {
+  source = "../../modules/workloads/dev"
+
+  db_password = var.db_password
+}

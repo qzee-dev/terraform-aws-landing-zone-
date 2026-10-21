@@ -18,7 +18,7 @@ resource "aws_resourcegroups_group" "this" {
       ResourceTypeFilters = ["AWS::AllSupportedResources"]
       TagFilters = [
         {
-          Key = "Environment"
+          Key    = "Environment"
           Values = ["Prod"]
         }
       ]

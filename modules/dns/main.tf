@@ -11,8 +11,11 @@ resource "aws_route53_resolver_endpoint" "inbound" {
   name      = "resolver-inbound"
 
   security_group_ids = [var.security_group_id]
-  ip_address {
-    subnet_id = var.inbound_subnet_id
+  dynamic "ip_address" {
+    for_each = var.inbound_subnet_ids
+    content {
+      subnet_id = ip_address.value
+    }
   }
 }
 
@@ -21,7 +24,10 @@ resource "aws_route53_resolver_endpoint" "outbound" {
   name      = "resolver-outbound"
 
   security_group_ids = [var.security_group_id]
-  ip_address {
-    subnet_id = var.outbound_subnet_id
+  dynamic "ip_address" {
+    for_each = var.outbound_subnet_ids
+    content {
+      subnet_id = ip_address.value
+    }
   }
 }
