@@ -1,3 +1,4 @@
+```
 flowchart TB
   Operator["Operator"]
   BootstrapScript["bootstrap-state.sh<br/>review plan and approve"]
@@ -122,3 +123,5 @@ flowchart TB
 
   P --> B --> BOOT --> BACKEND --> ACCESS --> CONFIG
   CONFIG --> MGMT --> SEC --> NET --> TGWID --> SHARED --> NONPROD --> GATES --> PROD
+
+```
