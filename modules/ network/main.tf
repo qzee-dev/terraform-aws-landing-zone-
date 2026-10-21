@@ -1,11 +1,13 @@
-
 resource "aws_vpc" "inspection" {
   cidr_block           = "10.30.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
-    Name = "inspection-vpc"
+    Name        = "inspection-vpc"
+    Environment = "Core"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
 
@@ -15,7 +17,10 @@ resource "aws_vpc" "shared_services" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "shared-services-vpc"
+    Name        = "shared-services-vpc"
+    Environment = "SharedServices"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
 
@@ -25,7 +30,10 @@ resource "aws_vpc" "prod" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "prod-vpc"
+    Name        = "prod-vpc"
+    Environment = "Prod"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
 
@@ -35,7 +43,10 @@ resource "aws_vpc" "stage" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "stage-vpc"
+    Name        = "stage-vpc"
+    Environment = "Stage"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
 
@@ -45,6 +56,9 @@ resource "aws_vpc" "dev" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "dev-vpc"
+    Name        = "dev-vpc"
+    Environment = "Dev"
+    Compliance  = "HIPAA"
+    Automation  = "Terraform"
   }
 }
