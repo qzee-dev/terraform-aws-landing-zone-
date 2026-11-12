@@ -1,12 +1,28 @@
-expected_management_account_id = "123456789012"
+expected_management_account_id = "<MANAGEMENT_ACCOUNT_ID>"
 
-log_archive_account_email      = "replace-with-unique-log-archive-email@example.com"
-security_tooling_account_email = "replace-with-unique-security-email@example.com"
-network_account_email          = "replace-with-unique-network-email@example.com"
-shared_system_account_email    = "replace-with-unique-shared-services-email@example.com"
-production_account_email       = "replace-with-unique-production-email@example.com"
-staging_account_email          = "replace-with-unique-staging-email@example.com"
-development_account_email      = "replace-with-unique-development-email@example.com"
-sandbox_account_email          = "replace-with-unique-sandbox-email@example.com"
+log_archive_account_email      = "<LOG_ARCHIVE_ACCOUNT_EMAIL>"
+security_tooling_account_email = "<SECURITY_ACCOUNT_EMAIL>"
+network_account_email          = "<NETWORK_ACCOUNT_EMAIL>"
+shared_system_account_email    = "<SHARED_SERVICES_ACCOUNT_EMAIL>"
+production_account_email       = "<PRODUCTION_ACCOUNT_EMAIL>"
+staging_account_email          = "<STAGING_ACCOUNT_EMAIL>"
+development_account_email      = "<DEVELOPMENT_ACCOUNT_EMAIL>"
+sandbox_account_email          = "<SANDBOX_ACCOUNT_EMAIL>"
 
-state_bucket_name = "replace-with-globally-unique-state-bucket-name"
+state_bucket_name = "<GLOBALLY_UNIQUE_BOOTSTRAP_STATE_BUCKET>"
+
+# Per-environment buckets are named <prefix>-<management-account-id>-<environment>.
+environment_state_bucket_prefix = "<UNIQUE_LOWERCASE_BUCKET_PREFIX>"
+
+# Existing deployment IAM roles. Use a different source role for each environment.
+state_backend_trusted_principal_arns = {
+  management      = "<ARN_OF_EXISTING_MANAGEMENT_DEPLOYER_ROLE>"
+  security        = "<ARN_OF_EXISTING_SECURITY_DEPLOYER_ROLE>"
+  log-archive     = "<ARN_OF_EXISTING_LOG_ARCHIVE_DEPLOYER_ROLE>"
+  network         = "<ARN_OF_EXISTING_NETWORK_DEPLOYER_ROLE>"
+  shared-services = "<ARN_OF_EXISTING_SHARED_SERVICES_DEPLOYER_ROLE>"
+  workload-dev    = "<ARN_OF_EXISTING_DEV_DEPLOYER_ROLE>"
+  workload-stage  = "<ARN_OF_EXISTING_STAGE_DEPLOYER_ROLE>"
+  workload-prod   = "<ARN_OF_EXISTING_PROD_DEPLOYER_ROLE>"
+  sandbox         = "<ARN_OF_EXISTING_SANDBOX_DEPLOYER_ROLE>"
+}

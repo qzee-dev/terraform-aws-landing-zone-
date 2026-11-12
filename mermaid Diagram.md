@@ -1,127 +1,78 @@
-```
+# Self-Managed AWS Organizations Landing Zone
+
+```mermaid
 flowchart TB
-  Operator["Operator"]
-  BootstrapScript["bootstrap-state.sh<br/>review plan and approve"]
-  EnvScript["deploy-environment.sh<br/>one root, review plan, approve"]
-  Operator --> BootstrapScript
-  Operator --> EnvScript
+  Operator["Platform operator"]
+  Bootstrap["Guarded bootstrap<br/>new Organization only"]
+  Deploy["Reviewed Terraform plan<br/>one isolated state per root"]
+  Operator --> Bootstrap
+  Operator --> Deploy
 
-  subgraph Foundation["Bootstrap account: AWS management account"]
-    Bootstrap["bootstrap Terraform root"]
-    Org["AWS Organization"]
-    OUs["Security, Infrastructure,<br/>Prod, Nonprod, Sandbox OUs"]
-    Accounts["Security and log archive<br/>Network and shared services<br/>Prod, stage, dev, sandbox accounts"]
-    RAMOrg["AWS RAM organization sharing"]
-    State["Encrypted S3 state bucket<br/>KMS key and DynamoDB lock table"]
-    Bootstrap --> Org --> OUs --> Accounts
-    Bootstrap --> RAMOrg
-    Bootstrap --> State
+  subgraph Org["AWS Organizations - self-managed"]
+    Management["Management account<br/>Organizations, billing, Identity Center"]
+    SecurityOU["Security OU"]
+    InfraOU["Infrastructure OU"]
+    ProdOU["Production OU"]
+    NonprodOU["Non-Production OU"]
+    SandboxOU["Sandbox OU"]
+    Management --> SecurityOU
+    Management --> InfraOU
+    Management --> ProdOU
+    Management --> NonprodOU
+    Management --> SandboxOU
+    SecurityOU --> LogArchive["Log Archive"]
+    SecurityOU --> Security["Security Tooling"]
+    InfraOU --> Network["Network"]
+    InfraOU --> Shared["Shared Services"]
+    Shared --> AD["AWS Managed Microsoft AD"]
+    ProdOU --> Prod["Production"]
+    NonprodOU --> Stage["Staging"]
+    NonprodOU --> Dev["Development"]
+    SandboxOU --> Sandbox["Sandbox"]
   end
 
-  BootstrapScript --> Bootstrap
-
-  subgraph Control["Management and security accounts"]
-    Management["management root"]
+  subgraph Workforce["Federated workforce access"]
+    IdP["One authoritative source<br/>Entra ID or Active Directory"]
+    Groups["Provisioned role groups"]
     IDC["IAM Identity Center<br/>permission sets and assignments"]
-    Security["security root"]
-    SecServices["GuardDuty, Security Hub,<br/>AWS Config, Config bucket and KMS"]
-    Management --> IDC
-    Security --> SecServices
+    IdP -->|"SAML sign-in<br/>SCIM or AD sync"| Groups
+    Groups --> IDC
   end
+  IDC -->|"SecurityAudit - read-only"| Security
+  IDC -->|"NetworkAdmin"| Network
+  IDC -->|"Developer - PowerUserAccess"| Dev
+  IDC -->|"ReadOnly"| Stage
+  IDC -->|"ReadOnly"| Prod
+  IDC -. "Optional, tightly controlled admin assignment" .-> Management
+  Management -. "registers Shared Services as sso.amazonaws.com delegated admin" .-> Shared
+  AD -->|"manual Identity Center source selection<br/>then AD group sync"| IDC
 
-  subgraph Hub["Network account"]
-    NetworkRoot["network root"]
-    Inspection["Inspection VPC<br/>private subnets, flow logs"]
-    TGW["Transit Gateway<br/>default route table"]
-    RAMShare["AWS RAM share<br/>approved spoke account IDs"]
-    NetworkRoot --> Inspection
-    Inspection -->|"hub attachment"| TGW
-    NetworkRoot --> RAMShare
-    TGW --> RAMShare
+  subgraph NetworkHub["Network account"]
+    TGW["Transit Gateway"]
+    Inspection["Inspection VPC<br/>firewall and routes not yet implemented"]
+    Network --> TGW
+    TGW -. "inspection path requires implementation" .-> Inspection
   end
+  Shared -->|"Spoke attachment and routes"| TGW
+  Dev -->|"Spoke attachment and routes"| TGW
+  Stage -->|"Spoke attachment and routes"| TGW
+  Prod -->|"Spoke attachment and routes"| TGW
 
-  subgraph Shared["Shared-services account"]
-    SharedRoot["shared-services root"]
-    SharedVPC["Shared-services VPC<br/>private subnets"]
-    AD["AWS Managed Microsoft AD"]
-    PHZ["Private Route 53 zone<br/>resolver endpoints"]
-    SharedSpoke["TGW attachment<br/>and configured routes"]
-    SharedRoot --> SharedVPC
-    SharedVPC --> AD
-    SharedVPC --> PHZ
-    SharedVPC --> SharedSpoke
-  end
+  State["Bootstrap state plus nine isolated environment backends"]
+  Bootstrap --> State
+  Deploy -->|"backend.hcl generated from outputs"| State
+  Deploy --> Management
+  Deploy --> Security
+  Deploy --> Network
+  Deploy --> Shared
+  Deploy --> Dev
+  Deploy --> Stage
+  Deploy --> Prod
+  Deploy --> Sandbox
 
-  subgraph Workloads["Workload accounts"]
-    SandboxRoot["sandbox root"]
-    DevRoot["workload-dev root"]
-    StageRoot["workload-stage root"]
-    ProdRoot["workload-prod root"]
-    SandboxVPC["Sandbox VPC"]
-    DevVPC["Dev VPC"]
-    StageVPC["Stage VPC"]
-    ProdVPC["Prod VPC and RDS"]
-    SandboxRoot --> SandboxVPC
-    DevRoot --> DevVPC
-    StageRoot --> StageVPC
-    ProdRoot --> ProdVPC
-  end
+  Existing["Existing accounts<br/>invite and onboard separately"]
+  Existing -. "AWS Organizations invitation<br/>and reviewed execution role" .-> Org
 
-  SandboxVPC --> SandboxSpoke["TGW attachment and routes"]
-  DevVPC --> DevSpoke["TGW attachment and routes"]
-  StageVPC --> StageSpoke["TGW attachment and routes"]
-  ProdVPC --> ProdSpoke["TGW attachment and routes"]
-
-  RAMOrg -. "organization sharing enabled" .-> RAMShare
-  RAMShare -. "shared with approved accounts" .-> SharedSpoke
-  RAMShare -. "shared with approved accounts" .-> SandboxSpoke
-  RAMShare -. "shared with approved accounts" .-> DevSpoke
-  RAMShare -. "shared with approved accounts" .-> StageSpoke
-  RAMShare -. "shared with approved accounts" .-> ProdSpoke
-
-  SharedSpoke --> TGW
-  SandboxSpoke --> TGW
-  DevSpoke --> TGW
-  StageSpoke --> TGW
-  ProdSpoke --> TGW
-
-  TGW -. "TGW ID copied into local spoke tfvars" .-> SharedSpoke
-  TGW -. "TGW ID copied into local spoke tfvars" .-> DevSpoke
-
-  State -. "separate state key per root" .-> EnvScript
-  EnvScript --> Management
-  EnvScript --> Security
-  EnvScript --> NetworkRoot
-  EnvScript --> SharedRoot
-  EnvScript --> SandboxRoot
-  EnvScript --> DevRoot
-  EnvScript --> StageRoot
-  EnvScript --> ProdRoot
-
-  Future["Production gates not yet implemented:<br/>organization CloudTrail and central log archive<br/>SCP creation and OU attachment<br/>inspection-firewall routing and segmentation<br/>cross-account private-DNS association"]
-  Future -. "implement and test before production" .-> Workloads
-
-
-  =============================================
-  second diagram
-  ==============================================
-  flowchart TD
-  P["1. Confirm new Organization,<br/>accounts, CIDRs, regions"]
-  B["2. Fill bootstrap/terraform.tfvars"]
-  BOOT["3. Run bootstrap-state.sh<br/>review plan; type APPLY BOOTSTRAP"]
-  BACKEND["4. Copy actual bucket/table values<br/>into each backend.hcl"]
-  ACCESS["5. Create account execution roles;<br/>enable Identity Center and groups"]
-  CONFIG["6. Fill per-environment terraform.tfvars<br/>with account IDs, role ARNs, inputs"]
-  MGMT["7. Deploy management"]
-  SEC["8. Deploy security"]
-  NET["9. Deploy network hub"]
-  TGWID["10. Copy network TGW output<br/>into each spoke's tfvars"]
-  SHARED["11. Deploy shared services"]
-  NONPROD["12. Deploy sandbox, dev, then stage"]
-  GATES["13. Implement and test CloudTrail,<br/>SCPs, firewall routing, private DNS"]
-  PROD["14. Deploy production only<br/>after gates pass"]
-
-  P --> B --> BOOT --> BACKEND --> ACCESS --> CONFIG
-  CONFIG --> MGMT --> SEC --> NET --> TGWID --> SHARED --> NONPROD --> GATES --> PROD
-
+  Gaps["Production gates still required:<br/>multi-Region security coverage and retention<br/>SCP validation and OU attachments<br/>inspection routing, egress and firewall<br/>backup, monitoring and recovery tests"]
+  Gaps -. "complete before production" .-> Org
 ```

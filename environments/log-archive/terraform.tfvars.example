@@ -1,0 +1,10 @@
+expected_account_id   = "<LOG_ARCHIVE_ACCOUNT_ID_FROM_BOOTSTRAP>"
+terraform_role_arn    = "<ARN_OF_LOG_ARCHIVE_TERRAFORM_EXECUTION_ROLE>"
+management_account_id = "<MANAGEMENT_ACCOUNT_ID_FROM_BOOTSTRAP>"
+organization_id       = "<ORGANIZATION_ID_FROM_BOOTSTRAP>"
+
+# Bucket name becomes <prefix>-<log-archive-account-id>-<region>-audit.
+log_bucket_prefix = "<UNIQUE_LOWERCASE_LOG_BUCKET_PREFIX>"
+
+# Keep 0 until legal/audit owners approve a retention period; then set an integer >= 90.
+cloudtrail_log_retention_days = 0

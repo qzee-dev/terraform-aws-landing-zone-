@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">= 1.10.0"
   backend "s3" {}
 }
 
@@ -25,10 +26,10 @@ module "shared_services" {
 module "active_directory" {
   source = "../../modules/active-directory"
 
-  vpc_id     = module.shared_services.vpc_ids["shared_services"]
-  subnet_ids = module.shared_services.subnet_ids["shared_services"]
-
-  password = var.ad_password
+  directory_name = var.ad_directory_name
+  vpc_id         = module.shared_services.vpc_ids["shared_services"]
+  subnet_ids     = module.shared_services.subnet_ids["shared_services"]
+  password       = var.ad_password
 }
 
 resource "aws_security_group" "dns_resolver" {
@@ -83,4 +84,8 @@ module "transit_gateway_spoke" {
   subnet_ids         = module.shared_services.subnet_ids["shared_services"]
   route_table_id     = module.shared_services.route_table_ids["shared_services"]
   route_cidrs        = var.transit_route_cidrs
+}
+
+module "config_recorder" {
+  source = "../../modules/config-recorder"
 }

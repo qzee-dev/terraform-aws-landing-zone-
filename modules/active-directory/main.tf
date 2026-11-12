@@ -1,5 +1,5 @@
 resource "aws_directory_service_directory" "this" {
-  name        = "corp.example.internal"
+  name        = var.directory_name
   password    = var.password
   size        = "Small"
   type        = "MicrosoftAD"

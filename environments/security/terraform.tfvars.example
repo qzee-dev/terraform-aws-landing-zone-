@@ -1,2 +1,7 @@
-expected_account_id = "123456789012"
-terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"
+expected_account_id    = "<SECURITY_ACCOUNT_ID_FROM_BOOTSTRAP>"
+terraform_role_arn     = "<ARN_OF_SECURITY_TERRAFORM_EXECUTION_ROLE>"
+management_account_id = "<MANAGEMENT_ACCOUNT_ID_FROM_BOOTSTRAP>"
+organization_root_id  = "<ORGANIZATION_ROOT_ID_FROM_BOOTSTRAP>"
+
+# Optional. Set to a monitored email address, then confirm the SNS subscription.
+security_alert_email = ""

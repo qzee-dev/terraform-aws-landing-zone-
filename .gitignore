@@ -12,6 +12,7 @@ override.tf.json
 *.tfvars.json
 terraform.tfvars
 terraform.tfvars.json
+environments/*/backend.hcl
 
 # OS/editor
 .DS_Store

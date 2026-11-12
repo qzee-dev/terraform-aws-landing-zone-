@@ -12,6 +12,6 @@ if [[ $# -eq 1 ]]; then
 	exec "$script_dir/deploy-environment.sh" "$1"
 fi
 
-for environment in management security network shared-services sandbox workload-dev workload-stage workload-prod; do
+for environment in log-archive management security network shared-services sandbox workload-dev workload-stage workload-prod; do
 	"$script_dir/deploy-environment.sh" "$environment"
 done

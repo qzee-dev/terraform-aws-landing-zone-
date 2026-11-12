@@ -2,6 +2,14 @@ output "organization_id" {
   value = aws_organizations_organization.this.id
 }
 
+output "management_account_id" {
+  value = aws_organizations_organization.this.master_account_id
+}
+
+output "organization_root_id" {
+  value = aws_organizations_organization.this.roots[0].id
+}
+
 output "security_ou_id" {
   value = aws_organizations_organizational_unit.security.id
 }
@@ -56,6 +64,24 @@ output "sandbox_account_id" {
 
 output "state_bucket_name" {
   value = aws_s3_bucket.state.bucket
+}
+
+output "state_kms_key_arn" {
+  value = aws_kms_key.state.arn
+}
+
+output "environment_backend_configs" {
+  description = "Backend settings and isolated state role ARNs keyed by Terraform environment."
+  value = {
+    for environment, bucket in aws_s3_bucket.environment_state : environment => {
+      account_id = var.expected_management_account_id
+      bucket     = bucket.bucket
+      key        = "${environment}/terraform.tfstate"
+      region     = var.aws_region
+      kms_key_id = aws_kms_key.environment_state[environment].arn
+      role_arn   = aws_iam_role.environment_state_access[environment].arn
+    }
+  }
 }
 
 output "lock_table_name" {

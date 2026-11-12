@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">= 1.10.0"
   backend "s3" {}
 }
 
@@ -23,4 +24,8 @@ module "transit_gateway_spoke" {
   subnet_ids         = module.stage.app_subnet_ids
   route_table_id     = module.stage.route_table_id
   route_cidrs        = var.transit_route_cidrs
+}
+
+module "config_recorder" {
+  source = "../../modules/config-recorder"
 }

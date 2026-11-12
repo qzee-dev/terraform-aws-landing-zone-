@@ -1,108 +1,85 @@
+data "aws_partition" "current" {}
+
 resource "aws_securityhub_account" "this" {
   auto_enable_controls = true
+}
+
+resource "aws_securityhub_organization_configuration" "this" {
+  auto_enable           = false
+  auto_enable_standards = "NONE"
+
+  organization_configuration {
+    configuration_type = "CENTRAL"
+  }
+
+  depends_on = [aws_securityhub_finding_aggregator.organization]
+}
+
+resource "aws_securityhub_finding_aggregator" "organization" {
+  linking_mode = "ALL_REGIONS"
+
+  depends_on = [aws_securityhub_account.this]
+}
+
+resource "aws_securityhub_configuration_policy" "organization" {
+  name        = "organization-baseline"
+  description = "Enable Security Hub and AWS Foundational Security Best Practices across the organization."
+
+  configuration_policy {
+    service_enabled = true
+    enabled_standard_arns = [
+      "arn:${data.aws_partition.current.partition}:securityhub:${var.aws_region}::standards/aws-foundational-security-best-practices/v/1.0.0"
+    ]
+
+    security_controls_configuration {
+      disabled_control_identifiers = []
+    }
+  }
+
+  depends_on = [aws_securityhub_organization_configuration.this]
+}
+
+resource "aws_securityhub_configuration_policy_association" "organization" {
+  target_id = var.organization_root_id
+  policy_id = aws_securityhub_configuration_policy.organization.id
 }
 
 resource "aws_guardduty_detector" "this" {
   enable = true
 }
 
-resource "aws_config_configuration_recorder" "this" {
-  name = "config-recorder"
-
-  recording_group {
-    all_supported                 = true
-    include_global_resource_types = true
-  }
-
-  role_arn = aws_iam_role.config.arn
+resource "aws_guardduty_organization_configuration" "this" {
+  detector_id                      = aws_guardduty_detector.this.id
+  auto_enable_organization_members = "ALL"
 }
 
-resource "aws_config_delivery_channel" "this" {
-  name = "config-delivery"
-
-  s3_bucket_name = aws_s3_bucket.config_bucket.bucket
-
-  snapshot_delivery_properties {
-    delivery_frequency = "Six_Hours"
-  }
-}
-
-resource "aws_iam_role" "config" {
-  name = "config-role"
+resource "aws_iam_role" "config_organization_aggregator" {
+  name = "AWSConfigOrganizationAggregator"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "config.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "config.amazonaws.com"
       }
-    ]
+      Action = "sts:AssumeRole"
+    }]
   })
 }
 
-resource "aws_iam_role_policy" "config" {
-  name = "config-role-policy"
-  role = aws_iam_role.config.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetBucketAcl",
-          "s3:PutObject"
-        ]
-        Resource = [
-          aws_s3_bucket.config_bucket.arn,
-          "${aws_s3_bucket.config_bucket.arn}/*"
-        ]
-      }
-    ]
-  })
+resource "aws_iam_role_policy_attachment" "config_organization_aggregator" {
+  role       = aws_iam_role.config_organization_aggregator.name
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
 
-resource "aws_s3_bucket" "config_bucket" {
-  bucket        = "config-log-bucket-${random_string.suffix.result}"
-  force_destroy = false
+resource "aws_config_configuration_aggregator" "organization" {
+  name = "organization-config-aggregator"
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        kms_master_key_id = aws_kms_key.config.arn
-        sse_algorithm     = "aws:kms"
-      }
-    }
+  organization_aggregation_source {
+    all_regions = true
+    role_arn    = aws_iam_role.config_organization_aggregator.arn
   }
 
-  tags = {
-    Name        = "config-log-bucket"
-    Environment = "Core"
-    Compliance  = "HIPAA"
-    Automation  = "Terraform"
-  }
-}
-
-resource "aws_s3_bucket_versioning" "config_bucket" {
-  bucket = aws_s3_bucket.config_bucket.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-  upper   = false
-}
-
-resource "aws_kms_key" "config" {
-  description             = "KMS key for Config"
-  enable_key_rotation     = true
-  deletion_window_in_days = 30
+  depends_on = [aws_iam_role_policy_attachment.config_organization_aggregator]
 }

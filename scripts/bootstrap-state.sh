@@ -33,14 +33,19 @@ fi
 terraform -chdir="$bootstrap_dir" apply -input=false "$plan_file"
 
 state_bucket="$(terraform -chdir="$bootstrap_dir" output -raw state_bucket_name)"
+state_kms_key="$(terraform -chdir="$bootstrap_dir" output -raw state_kms_key_arn)"
 lock_table="$(terraform -chdir="$bootstrap_dir" output -raw lock_table_name)"
 state_region="$(terraform -chdir="$bootstrap_dir" output -raw aws_region)"
+management_account_id="$(terraform -chdir="$bootstrap_dir" output -raw management_account_id)"
 
 terraform -chdir="$bootstrap_dir" init -input=false -migrate-state -force-copy \
   -backend-config="bucket=$state_bucket" \
   -backend-config="key=bootstrap/terraform.tfstate" \
   -backend-config="region=$state_region" \
   -backend-config="encrypt=true" \
+  -backend-config="kms_key_id=$state_kms_key" \
+  -backend-config="allowed_account_ids=$management_account_id" \
   -backend-config="dynamodb_table=$lock_table"
 
 echo "Bootstrap state has been migrated to the created S3 backend."
+"$repo_dir/scripts/configure-backends.sh"

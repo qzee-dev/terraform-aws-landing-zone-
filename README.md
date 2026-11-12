@@ -1,135 +1,70 @@
-# Enterprise AWS Landing Zone for HIPAA-aligned Workloads
+# Self-Managed AWS Landing Zone
 
-This repository contains a Terraform landing-zone scaffold for:
-- AWS Organizations
-- multi-account design
-- centralized security and logging
-- hub-and-spoke network architecture
-- hybrid connectivity
-- production workload isolation
-- staging and development isolation
-- sandbox controls
-- cost governance and tagging
-- multi-state remote-state pattern
+This repository is a Terraform scaffold for a self-managed AWS Organizations
+landing zone. **AWS Control Tower is not used. This is not production-ready as
+checked in.**
 
-## Architecture
+Read the canonical [Self-Managed Landing Zone Runbook](docs/SELF-MANAGED-LANDING-ZONE-RUNBOOK.md)
+before running Terraform. It contains the architecture, placeholder inventory,
+new-Organization sequence, state bootstrap, Entra/AD federation, permissions,
+existing-account adoption, network placement, SCP cautions, and go-live gates.
 
-This repo models:
+## What is included
 
-- AWS Organizations root
-- Security-OU
-- Infrastructure-OU
-- Workloads-Prod-OU
-- Workloads-NonProd-OU
-- Sandbox-OU
+- Organization bootstrap for an existing management account, OUs, and eight
+  new member accounts.
+- Nine isolated Terraform environment backends with per-environment S3
+  buckets, KMS keys, S3 lockfiles, and backend roles.
+- Organization CloudTrail delivery to a separate Log Archive account, with a
+  dedicated KMS key, protected S3 bucket, and S3 server-access logging.
+- GuardDuty and Security Hub delegated administration, AWS Config recorders in
+  each environment root, an organization Config aggregator, and optional
+  high-severity SNS email notifications.
+- TGW-routed east-west inspection with a multi-AZ AWS Network Firewall and
+  custom inspection-VPC NACL.
+- An SCP baseline attached to the five member-account OUs. It blocks member
+  accounts from leaving the Organization and prevents root access-key creation.
+- Example Identity Center permission sets/assignments, Transit Gateway, VPCs,
+  shared services, and workload roots.
+- Approval-gated bootstrap and single-environment deployment scripts.
 
-Accounts:
+## Important limitations
 
-- Management Account
-- Log Archive Account
-- Security Tooling Account
-- Network Account
-- Shared-System Account
-- Production Account
-- Staging Account
-- Development Account
-- Sandbox Account
+- Do **not** run bootstrap against an existing Organization. This repository
+  does not automatically adopt existing accounts.
+- The production, non-production, and sandbox SCP examples are not attached.
+  The baseline SCP is attached to member-account OUs but does not restrict the
+  management account; review its effects before applying bootstrap.
+- GuardDuty and each AWS Config recorder are configured in one selected Region.
+  Security Hub central configuration links all supported Regions; verify the
+  organization's enabled-Region and account coverage before production.
+- Security Hub and GuardDuty usage, Config history storage, CloudTrail storage,
+  and KMS use incur service charges; estimate and monitor costs.
+- CloudTrail and S3 access-log expiration are disabled by default
+  (`cloudtrail_log_retention_days = 0`); set an approved retention period only
+  after legal and audit review.
+- The firewall inspects only transit traffic whose spoke attachment IDs,
+  peer CIDRs, and stateful allow rules have been configured. Empty allowlists
+  are fail-closed. Internet egress/NAT inspection is not implemented.
+- Identity Center must be enabled and connected to one workforce source before
+  the management root is applied. Terraform does not configure SAML/SCIM or
+  create/synchronize directory groups.
+- State is segmented by environment but remains in the management account.
+- Example CIDRs, emails, account IDs, group IDs, role ARNs, secrets, and service
+  values are placeholders. Replace them with approved values locally; never
+  commit credentials, secrets, generated backend files, or state.
 
-VPCs:
+## Start here
 
-- inspection: 10.30.0.0/16
-- shared-services: 10.40.0.0/16
-- prod: 10.50.0.0/16
-- stage: 10.60.0.0/16
-- dev: 10.70.0.0/16
-- sandbox: 10.80.0.0/16
+1. Read the [runbook](docs/SELF-MANAGED-LANDING-ZONE-RUNBOOK.md) and identify
+   which values must be replaced with `<PLACEHOLDERS>`.
+2. Decide whether this is a genuinely new Organization or an existing
+   Organization to extend. Bootstrap is for a new Organization only.
+3. Configure and review the local bootstrap values, then run
+   `scripts/bootstrap-state.sh` only when its preconditions are satisfied.
+4. Configure one environment at a time and use
+   `scripts/deploy-environment.sh <environment>` to review and approve the exact
+   plan.
 
-## State model
-
-Remote state is isolated per environment:
-- management
-- security
-- network
-- shared-services
-- workload-prod
-- workload-stage
-- workload-dev
-- sandbox
-
-## Security foundation
-
-The security environment configures AWS Config, GuardDuty, Security Hub, a
-Config bucket, and KMS. SCP policy documents are present, but they are not yet
-created or attached by Terraform. CloudTrail organization trails, centralized
-log-archive delivery, cross-account Config aggregation, Identity Center group
-provisioning, and cross-account private DNS associations remain deployment
-prerequisites or follow-up work.
-
-## Tagging standard
-
-All resources should include:
-- Environment
-- ProjectID
-- Owner
-- CostCenter
-- Compliance
-- Automation
-
-## Secret handling
-
-Do not store secrets in Git.
-Use:
-- AWS Secrets Manager
-- AWS Systems Manager Parameter Store
-- CI/CD secret stores
-
-## Deployment workflow
-
-Run the bootstrap stack once from the management account. It owns AWS
-Organizations, accounts, OUs, and the remote state backend. The management
-environment manages IAM Identity Center and does not create a second
-Organization.
-
-Create an ignored `terraform.tfvars` file in each environment directory. Set
-`expected_account_id` and `terraform_role_arn`, plus that environment's required
-inputs. Supply passwords through a secure secret process; do not commit them.
-The `terraform.tfvars.example` files are templates; replace every placeholder
-before use. For passwords, prefer `TF_VAR_db_password` and
-`TF_VAR_ad_password` from a secrets-backed deployment environment.
-
-Deploy one environment with `scripts/deploy-environment.sh <environment>`. The
-script initializes using that environment's `backend.hcl`, validates, displays
-a saved plan, and applies only after you type `APPLY <environment>`. Running
-`scripts/deploy-all.sh` invokes the same gated process in this order:
-management, security, network, shared-services, sandbox, workload-dev,
-workload-stage, workload-prod. It will stop if an environment is not configured
-or an approval is declined.
-
-After bootstrap, apply `network` first. Configure `transit_gateway_spoke_account_ids`
-with the exact spoke account IDs. Then put the network stack's TGW output into
-each spoke's `transit_gateway_id`; the deployment script does not discover or
-trust cross-account outputs automatically. Set only explicitly approved CIDRs
-in each `transit_route_cidrs`. AWS RAM shares the TGW within the Organization;
-spoke roots create their own attachments and routes. Test DNS, route tables,
-security groups, and return paths before sending application traffic.
-
-Copy the `state_bucket_name` and `lock_table_name` bootstrap outputs into every
-environment's `backend.hcl` (the bucket and lock table must match bootstrap;
-each `key` must remain unique). This keeps clean checkouts and CI independent of
-local `.terraform` metadata.
-
-The example Transit Gateway uses its default route table. It does not provide
-firewall inspection or on-premises VPN connectivity; add and test those routing
-paths before claiming centralized inspection or hybrid connectivity.
-
-IAM Identity Center must be enabled in the management account before applying
-the management environment. Create the referenced groups first. The current
-spoke attachments provide private routing through the TGW; they do not force
-traffic through an inspection appliance.
-
-## Important
-
-This repository is production-standard scaffolding. Before deployment, replace
-all placeholder account IDs, CIDRs, subnets, IAM role ARNs, and service inputs
-with values approved for the target organization. Review every saved plan;
-validation alone does not establish production readiness.
+Do not treat `terraform validate`, sample policies, or compliance tags as
+evidence of live-account readiness or compliance.

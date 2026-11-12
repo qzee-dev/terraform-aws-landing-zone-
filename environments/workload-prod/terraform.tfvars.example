@@ -1,6 +1,6 @@
-expected_account_id = "123456789012"
-terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"
+expected_account_id = "<PRODUCTION_ACCOUNT_ID_FROM_BOOTSTRAP>"
+terraform_role_arn  = "<ARN_OF_PROD_TERRAFORM_EXECUTION_ROLE>"
 
-transit_gateway_id = "tgw-replace-with-network-output"
+transit_gateway_id = "<TRANSIT_GATEWAY_ID_FROM_NETWORK_OUTPUT>"
 transit_route_cidrs = ["10.30.0.0/16", "10.40.0.0/16"]
-db_password        = "REPLACE_WITH_SECURE_SECRET_INJECTION"
+db_password        = "<INJECT_FROM_SECRET_MANAGER>"

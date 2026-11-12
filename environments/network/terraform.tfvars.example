@@ -1,10 +1,23 @@
-expected_account_id = "123456789012"
-terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"
+expected_account_id = "<NETWORK_ACCOUNT_ID_FROM_BOOTSTRAP>"
+terraform_role_arn  = "<ARN_OF_NETWORK_TERRAFORM_EXECUTION_ROLE>"
+
+inspection_vpc_cidr = "<APPROVED_INSPECTION_VPC_CIDR>"
+inspection_peer_cidrs = [
+  # "<APPROVED_SPOKE_OR_ON_PREMISES_CIDR>",
+]
+inspection_stateful_allow_rules = [
+  # "pass tcp <APPROVED_SOURCE_CIDR> any -> <APPROVED_DESTINATION_CIDR> 443 (msg:\"Approved HTTPS\"; sid:1000001; rev:1;)",
+  # Add reviewed Suricata rules; with none, the firewall denies all transit traffic.
+]
+network_firewall_log_retention_days = 365
+
+# After applying each spoke root, add its output here and re-apply the network root.
+transit_gateway_spoke_attachment_ids = {}
 
 transit_gateway_spoke_account_ids = [
-  "replace-with-shared-services-account-id",
-  "replace-with-sandbox-account-id",
-  "replace-with-development-account-id",
-  "replace-with-staging-account-id",
-  "replace-with-production-account-id"
+  "<SHARED_SERVICES_ACCOUNT_ID>",
+  "<SANDBOX_ACCOUNT_ID>",
+  "<DEVELOPMENT_ACCOUNT_ID>",
+  "<STAGING_ACCOUNT_ID>",
+  "<PRODUCTION_ACCOUNT_ID>"
 ]

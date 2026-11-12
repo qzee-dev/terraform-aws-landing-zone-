@@ -1,7 +1,22 @@
-expected_account_id = "123456789012"
-terraform_role_arn  = "arn:aws:iam::123456789012:role/TerraformExecutionRole"
+expected_account_id = "<MANAGEMENT_ACCOUNT_ID_FROM_BOOTSTRAP>"
+terraform_role_arn  = "<ARN_OF_MANAGEMENT_TERRAFORM_EXECUTION_ROLE>"
+log_archive_bucket_name = "<CLOUDTRAIL_BUCKET_NAME_FROM_LOG_ARCHIVE_OUTPUT>"
+log_archive_kms_key_arn = "<CLOUDTRAIL_KMS_KEY_ARN_FROM_LOG_ARCHIVE_OUTPUT>"
 
-security_admin_group_id = "replace-with-identity-center-security-group-id"
-network_admin_group_id  = "replace-with-identity-center-network-group-id"
-security_account_id     = "123456789012"
-network_account_id      = "123456789012"
+# Leave group IDs empty for the first apply; add synchronized AD group IDs and
+# apply again to grant account access.
+security_audit_group_id = ""
+network_admin_group_id  = ""
+developer_group_id      = ""
+stage_readonly_group_id = ""
+prod_readonly_group_id  = ""
+# Leave empty unless full management-account administrator assignment is approved.
+platform_admin_group_id = ""
+
+security_account_id                       = "<SECURITY_TOOLING_ACCOUNT_ID_FROM_BOOTSTRAP>"
+network_account_id                        = "<NETWORK_ACCOUNT_ID_FROM_BOOTSTRAP>"
+# This account hosts the AWS Managed Microsoft AD identity source.
+identity_center_delegated_admin_account_id = "<SHARED_SERVICES_ACCOUNT_ID_FROM_BOOTSTRAP>"
+development_account_id                    = "<DEVELOPMENT_ACCOUNT_ID_FROM_BOOTSTRAP>"
+staging_account_id                        = "<STAGING_ACCOUNT_ID_FROM_BOOTSTRAP>"
+production_account_id                     = "<PRODUCTION_ACCOUNT_ID_FROM_BOOTSTRAP>"

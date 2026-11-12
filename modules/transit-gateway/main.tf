@@ -1,8 +1,8 @@
 resource "aws_ec2_transit_gateway" "this" {
   description                     = "Enterprise core TGW"
   auto_accept_shared_attachments  = "enable"
-  default_route_table_association = "enable"
-  default_route_table_propagation = "enable"
+  default_route_table_association = "disable"
+  default_route_table_propagation = "disable"
 
   tags = {
     Name        = "enterprise-core-tgw"
@@ -13,9 +13,43 @@ resource "aws_ec2_transit_gateway" "this" {
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "inspection" {
-  subnet_ids         = var.inspection_subnet_ids
+  appliance_mode_support                          = "enable"
+  subnet_ids                                      = var.inspection_subnet_ids
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
+  transit_gateway_id                              = aws_ec2_transit_gateway.this.id
+  vpc_id                                          = var.inspection_vpc_id
+}
+
+resource "aws_ec2_transit_gateway_route_table" "spokes" {
   transit_gateway_id = aws_ec2_transit_gateway.this.id
-  vpc_id             = var.inspection_vpc_id
+
+  tags = {
+    Name        = "spoke-to-inspection"
+    Environment = "Core"
+    Automation  = "Terraform"
+  }
+}
+
+resource "aws_ec2_transit_gateway_route_table" "inspection" {
+  transit_gateway_id = aws_ec2_transit_gateway.this.id
+
+  tags = {
+    Name        = "inspection-to-spokes"
+    Environment = "Core"
+    Automation  = "Terraform"
+  }
+}
+
+resource "aws_ec2_transit_gateway_route_table_association" "inspection" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.inspection.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.inspection.id
+}
+
+resource "aws_ec2_transit_gateway_route" "spokes_to_inspection" {
+  destination_cidr_block         = "0.0.0.0/0"
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.inspection.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes.id
 }
 
 resource "aws_ram_resource_share" "transit_gateway" {
